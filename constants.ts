@@ -1,0 +1,68 @@
+import type { Product } from './types';
+
+export const productsData: Product[] = [
+  {
+    id: 1,
+    name: 'Aquaclair Drinking Water (75cl)',
+    description: ['Zero contaminants', 'No after-taste', 'Refreshing'],
+    imageUrl: 'https://i.imgur.com/8L3wS2p.png',
+    originalPrice: 150,
+    slashedPrice: 130,
+  },
+  {
+    id: 2,
+    name: 'Reos Anti-Bacterial Handwash (500ml)',
+    description: ['Contains glycerine and Aloe', 'Prevents the skin from drying out'],
+    imageUrl: 'https://i.imgur.com/J8SjC3j.png',
+    originalPrice: 1200,
+    slashedPrice: 990,
+  },
+  {
+    id: 3,
+    name: 'Myprei Palm Oil (2L)',
+    description: ['Suitable for Various Cooking Methods', 'Cholesterol Free'],
+    imageUrl: 'https://i.imgur.com/zcrb1xH.png',
+    originalPrice: 6500,
+    slashedPrice: 6200,
+  },
+  {
+    id: 4,
+    name: 'Mealmate Elubo Isu (900g)',
+    description: ['100% plant based', 'Free from adulteration', 'Supports weight management'],
+    imageUrl: 'https://i.imgur.com/1E4T5gC.png',
+    originalPrice: 4000,
+    slashedPrice: 3700,
+  },
+  {
+    id: 5,
+    name: 'Mealmate Poundo Yam Flour (900g)',
+    description: ['100% Plant Based', 'Naturally Wholesome'],
+    imageUrl: 'https://i.imgur.com/z4r3mPy.png',
+    originalPrice: 3800,
+    slashedPrice: 3500,
+  },
+  {
+    id: 6,
+    name: 'Gleamly Glow Body Lotion (440ml)',
+    description: ['Hydrates deeply and restores', '40ml more care in every bottle'],
+    imageUrl: 'https://i.imgur.com/T0a3E5b.png',
+    originalPrice: 3200,
+    slashedPrice: 2900,
+  },
+  {
+    id: 7,
+    name: 'Co-Vita Powdered Chocolate Drink (400g)',
+    description: ['Vanilla flavoured chocolate drink', 'Contains protein'],
+    imageUrl: 'https://i.imgur.com/v2V959P.png',
+    originalPrice: 2500,
+    slashedPrice: 2390,
+  },
+  {
+    id: 8,
+    name: 'Reos Toilet Cleaner (800ml)',
+    description: ['Removes limescale and rust', 'It lathers better than commercial brands'],
+    imageUrl: 'https://i.imgur.com/x5z1LzP.png',
+    originalPrice: 2200,
+    slashedPrice: 2000,
+  },
+];
