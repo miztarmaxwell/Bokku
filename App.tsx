@@ -3,15 +3,18 @@ import { Header } from './components/Header';
 import { ProductCard } from './components/ProductCard';
 import { Toast } from './components/Toast';
 import { productsData } from './constants';
-import type { Product } from './types';
+import type { Product, Notification } from './types';
 import { Modal } from './components/Modal';
+import { NotificationsPanel } from './components/NotificationsPanel';
 
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(productsData);
   const [toast, setToast] = useState<{ id: number, message: string } | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
-
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleToggleNotifications = useCallback(() => {
     const newStatus = !notificationsEnabled;
@@ -43,17 +46,21 @@ const App: React.FC = () => {
           slashedPrice: newSlashedPrice,
         };
         
-        setToast({ 
-          id: Date.now(), 
-          message: `Price drop for ${productToUpdate.name}! Now ₦${newSlashedPrice.toLocaleString()}` 
-        });
+        const message = `Price drop for ${productToUpdate.name}! Now ₦${newSlashedPrice.toLocaleString()}`;
+
+        setToast({ id: Date.now(), message });
+        setNotifications(prev => [{ id: Date.now(), message, timestamp: new Date() }, ...prev.slice(0, 19)]);
+        
+        if (!isNotificationsPanelOpen) {
+          setUnreadCount(prev => prev + 1);
+        }
 
         return productsCopy;
       });
     }, 5000);
 
     return () => clearInterval(intervalId);
-  }, [notificationsEnabled]);
+  }, [notificationsEnabled, isNotificationsPanelOpen]);
 
   const handleQuickView = useCallback((product: Product) => {
     setQuickViewProduct(product);
@@ -63,17 +70,39 @@ const App: React.FC = () => {
     setQuickViewProduct(null);
   }, []);
 
-
   const handleCloseToast = useCallback(() => {
     setToast(null);
+  }, []);
+
+  const handleToggleNotificationsPanel = useCallback(() => {
+    setIsNotificationsPanelOpen(prev => {
+      if (!prev) { // If panel is about to open
+        setUnreadCount(0);
+      }
+      return !prev;
+    });
+  }, []);
+
+  const handleClearNotifications = useCallback(() => {
+    setNotifications([]);
   }, []);
 
   return (
     <div className="min-h-screen bg-[#E0F2FF] font-sans text-slate-800">
       <Header
-        notificationsEnabled={notificationsEnabled}
-        onToggleNotifications={handleToggleNotifications}
+        onToggleNotificationsPanel={handleToggleNotificationsPanel}
+        unreadCount={unreadCount}
       />
+       <div className="relative">
+        <NotificationsPanel
+          isOpen={isNotificationsPanelOpen}
+          notifications={notifications}
+          notificationsEnabled={notificationsEnabled}
+          onToggleNotifications={handleToggleNotifications}
+          onClear={handleClearNotifications}
+          onClose={() => setIsNotificationsPanelOpen(false)}
+        />
+      </div>
       <main className="container mx-auto px-4 py-8">
         <section className="text-center mb-12">
            <div className="inline-block bg-gradient-to-r from-[#FFD700] to-[#0052FF] rounded-lg p-1 mb-8">
@@ -85,7 +114,7 @@ const App: React.FC = () => {
             Real-Time Price Slashes!
           </h1>
           <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">
-            Our prices are dropping live! Use the bell icon in the header to toggle notifications and never miss a deal.
+            Our prices are dropping live! Click the bell icon in the header to see recent deals and manage notifications.
           </p>
         </section>
 

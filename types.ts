@@ -6,3 +6,9 @@ export interface Product {
   originalPrice: number;
   slashedPrice: number;
 }
+
+export interface Notification {
+  id: number;
+  message: string;
+  timestamp: Date;
+}
