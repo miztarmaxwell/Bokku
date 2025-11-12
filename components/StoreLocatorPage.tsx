@@ -18,18 +18,59 @@ const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => 
     return R * 2 * Math.asin(Math.sqrt(a));
 };
 
+const isStoreOpen = (hours: string): boolean => {
+    try {
+        const [startTimeStr, endTimeStr] = hours.split(' - ');
+        if (!startTimeStr || !endTimeStr) return false;
+
+        const now = new Date();
+
+        const parseTime = (timeStr: string): Date => {
+            const [time, modifier] = timeStr.trim().split(' ');
+            let [hours, minutes] = time.split(':').map(Number);
+
+            if (modifier.toUpperCase() === 'PM' && hours < 12) {
+                hours += 12;
+            }
+            if (modifier.toUpperCase() === 'AM' && hours === 12) { // Handle 12 AM (midnight)
+                hours = 0;
+            }
+
+            const date = new Date();
+            date.setHours(hours, minutes || 0, 0, 0);
+            return date;
+        };
+
+        const startTime = parseTime(startTimeStr);
+        const endTime = parseTime(endTimeStr);
+
+        return now >= startTime && now <= endTime;
+    } catch (error) {
+        console.error("Error parsing store hours:", hours, error);
+        return false;
+    }
+};
+
 export const StoreLocatorPage: React.FC = () => {
     const [userLocation, setUserLocation] = useState<{ lat: number, lng: number } | null>(null);
     const [locationError, setLocationError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
+    const [currentTime, setCurrentTime] = useState(new Date());
 
     const mapRef = useRef<any>(null);
     const markersRef = useRef<{ [key: number]: any }>({});
     const userMarkerRef = useRef<any>(null);
     const listRefs = useRef<{ [key: number]: HTMLLIElement | null }>({});
 
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 60000); // Update every minute
+
+        return () => clearInterval(timer);
+    }, []);
 
     useEffect(() => {
         if (navigator.geolocation) {
@@ -52,16 +93,21 @@ export const StoreLocatorPage: React.FC = () => {
     }, []);
 
     const sortedStores = useMemo(() => {
+        const storesWithDynamicStatus = storesData.map(store => ({
+            ...store,
+            isOpen: isStoreOpen(store.hours)
+        }));
+
         if (userLocation) {
-            return [...storesData]
+            return storesWithDynamicStatus
                 .map(store => ({
                     ...store,
                     distance: getDistance(userLocation.lat, userLocation.lng, store.lat, store.lng)
                 }))
                 .sort((a, b) => a.distance - b.distance);
         }
-        return storesData.map(store => ({ ...store, distance: undefined }));
-    }, [userLocation]);
+        return storesWithDynamicStatus.map(store => ({ ...store, distance: undefined }));
+    }, [userLocation, currentTime]);
 
     useEffect(() => {
         if (!mapRef.current) {
