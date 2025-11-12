@@ -15,7 +15,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         <img className="h-64 w-full object-contain bg-white" src={imageUrl} alt={name} />
       </div>
       <div className="p-4 flex-grow flex flex-col">
-        <h3 className="text-lg font-bold text-slate-800 mb-2">{name}</h3>
+        <h3 className="text-lg font-bold text-yellow-700 mb-2">{name}</h3>
         <div className="mb-4 flex-grow">
           <ul className="list-disc list-inside text-slate-600 space-y-1">
             {description.map((item, index) => <li key={index}>{item}</li>)}

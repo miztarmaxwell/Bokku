@@ -9,6 +9,7 @@ export interface Product {
 
 export interface Notification {
   id: number;
+  productId: number;
   message: string;
   timestamp: Date;
 }

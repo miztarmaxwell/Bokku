@@ -17,7 +17,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleNotificationsPanel, unre
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center space-x-2">
-            <span className="text-4xl font-extrabold text-white tracking-tighter">bokku!</span>
+            <span className="text-4xl font-extrabold text-yellow-300 tracking-tighter">bokku!</span>
           </div>
           <div className="relative">
             <button 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Notification } from '../types';
 import { ToggleSwitch } from './ToggleSwitch';
 
@@ -9,6 +9,7 @@ interface NotificationsPanelProps {
   onToggleNotifications: () => void;
   onClear: () => void;
   onClose: () => void;
+  onNotificationClick: (productId: number) => void;
 }
 
 const BellIcon = () => (
@@ -42,11 +43,18 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   notificationsEnabled,
   onToggleNotifications,
   onClear,
+  onNotificationClick,
 }) => {
+  const [filter, setFilter] = useState('');
+
   if (!isOpen) return null;
 
+  const filteredNotifications = notifications.filter(n =>
+    n.message.toLowerCase().includes(filter.toLowerCase())
+  );
+
   return (
-    <div className="absolute top-full right-4 mt-2 w-80 max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 z-40 overflow-hidden">
+    <div className="absolute top-full right-4 mt-2 w-80 max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 z-40 overflow-hidden flex flex-col">
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <h3 className="font-bold text-gray-800">Notifications</h3>
         <ToggleSwitch 
@@ -55,13 +63,29 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
             label=""
         />
       </div>
+       <div className="p-2 border-b border-gray-200">
+        <input
+          type="text"
+          placeholder="Filter notifications..."
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Filter notifications"
+        />
+      </div>
       <div className="max-h-80 overflow-y-auto">
         {notifications.length === 0 ? (
           <p className="text-gray-500 text-center p-8">No new notifications.</p>
+        ) : filteredNotifications.length === 0 ? (
+            <p className="text-gray-500 text-center p-8">No notifications match your filter.</p>
         ) : (
           <ul>
-            {notifications.map(notification => (
-              <li key={notification.id} className="border-b border-gray-100 p-4 hover:bg-gray-50 transition-colors">
+            {filteredNotifications.map(notification => (
+              <li 
+                key={notification.id} 
+                className="border-b border-gray-100 p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => onNotificationClick(notification.productId)}
+                >
                 <div className="flex items-start">
                     <BellIcon />
                     <div className="flex-1">
@@ -75,7 +99,7 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
         )}
       </div>
       {notifications.length > 0 && (
-        <div className="p-2 bg-gray-50 border-t border-gray-200">
+        <div className="p-2 bg-gray-50 border-t border-gray-200 mt-auto">
             <button
                 onClick={onClear}
                 className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-semibold py-1 rounded transition-colors"

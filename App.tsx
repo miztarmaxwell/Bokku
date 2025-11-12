@@ -49,7 +49,7 @@ const App: React.FC = () => {
         const message = `Price drop for ${productToUpdate.name}! Now ₦${newSlashedPrice.toLocaleString()}`;
 
         setToast({ id: Date.now(), message });
-        setNotifications(prev => [{ id: Date.now(), message, timestamp: new Date() }, ...prev.slice(0, 19)]);
+        setNotifications(prev => [{ id: Date.now(), message, timestamp: new Date(), productId: productToUpdate.id }, ...prev.slice(0, 19)]);
         
         if (!isNotificationsPanelOpen) {
           setUnreadCount(prev => prev + 1);
@@ -87,6 +87,14 @@ const App: React.FC = () => {
     setNotifications([]);
   }, []);
 
+  const handleNotificationClick = useCallback((productId: number) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      setQuickViewProduct(product);
+      setIsNotificationsPanelOpen(false);
+    }
+  }, [products]);
+
   return (
     <div className="min-h-screen bg-[#E0F2FF] font-sans text-slate-800">
       <Header
@@ -101,6 +109,7 @@ const App: React.FC = () => {
           onToggleNotifications={handleToggleNotifications}
           onClear={handleClearNotifications}
           onClose={() => setIsNotificationsPanelOpen(false)}
+          onNotificationClick={handleNotificationClick}
         />
       </div>
       <main className="container mx-auto px-4 py-8">
@@ -110,7 +119,7 @@ const App: React.FC = () => {
                     Exclusively available at bokku!
                 </h2>
             </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-[#002D7A] mb-4">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-yellow-600 mb-4">
             Real-Time Price Slashes!
           </h1>
           <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">
@@ -151,7 +160,7 @@ const App: React.FC = () => {
               />
             </div>
             <div className="flex flex-col h-full">
-              <h2 id="modal-title" className="text-3xl font-bold text-[#002D7A] mb-4">
+              <h2 id="modal-title" className="text-3xl font-bold text-yellow-600 mb-4">
                 {quickViewProduct.name}
               </h2>
               <div className="mb-6 flex-grow">
