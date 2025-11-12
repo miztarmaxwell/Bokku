@@ -1,5 +1,7 @@
 {
   "name": "Bokku Price Slash Notifier",
   "description": "An application inspired by Bokku.com, designed to help users track price slashes on their favorite Japanese snacks and subscribe to notifications for the best deals.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }

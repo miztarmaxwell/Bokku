@@ -6,6 +6,7 @@ import { productsData } from './constants';
 import type { Product, Notification } from './types';
 import { Modal } from './components/Modal';
 import { NotificationsPanel } from './components/NotificationsPanel';
+import { StoreLocatorPage } from './components/StoreLocatorPage';
 
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(productsData);
@@ -15,6 +16,7 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState<'home' | 'store-locator'>('home');
 
   const handleToggleNotifications = useCallback(() => {
     const newStatus = !notificationsEnabled;
@@ -95,24 +97,16 @@ const App: React.FC = () => {
     }
   }, [products]);
 
-  return (
-    <div className="min-h-screen bg-[#E0F2FF] font-sans text-slate-800">
-      <Header
-        onToggleNotificationsPanel={handleToggleNotificationsPanel}
-        unreadCount={unreadCount}
-      />
-       <div className="relative">
-        <NotificationsPanel
-          isOpen={isNotificationsPanelOpen}
-          notifications={notifications}
-          products={products}
-          notificationsEnabled={notificationsEnabled}
-          onToggleNotifications={handleToggleNotifications}
-          onClear={handleClearNotifications}
-          onClose={() => setIsNotificationsPanelOpen(false)}
-          onNotificationClick={handleNotificationClick}
-        />
-      </div>
+  const handleNavigateToStoreLocator = useCallback(() => {
+    setCurrentPage('store-locator');
+  }, []);
+  
+  const handleGoHome = useCallback(() => {
+    setCurrentPage('home');
+  }, []);
+
+  const HomePage = () => (
+    <>
       <main className="container mx-auto px-4 py-8">
         <section className="text-center mb-12">
            <div className="inline-block bg-gradient-to-r from-[#FFD700] to-[#0052FF] rounded-lg p-1 mb-8">
@@ -143,6 +137,31 @@ const App: React.FC = () => {
       <footer className="text-center py-6 mt-12">
         <p className="text-slate-600">&copy; 2024 Bokku Price Notifier. All rights reserved.</p>
       </footer>
+    </>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#E0F2FF] font-sans text-slate-800">
+      <Header
+        onToggleNotificationsPanel={handleToggleNotificationsPanel}
+        unreadCount={unreadCount}
+        onGoHome={handleGoHome}
+      />
+       <div className="relative">
+        <NotificationsPanel
+          isOpen={isNotificationsPanelOpen}
+          notifications={notifications}
+          products={products}
+          notificationsEnabled={notificationsEnabled}
+          onToggleNotifications={handleToggleNotifications}
+          onClear={handleClearNotifications}
+          onClose={() => setIsNotificationsPanelOpen(false)}
+          onNotificationClick={handleNotificationClick}
+        />
+      </div>
+
+      {currentPage === 'home' ? <HomePage /> : <StoreLocatorPage />}
+      
       {toast && (
         <Toast
           key={toast.id}
@@ -169,13 +188,24 @@ const App: React.FC = () => {
                   {quickViewProduct.description.map((item, index) => <li key={index}>{item}</li>)}
                 </ul>
               </div>
-              <div className="flex items-center space-x-4 mt-auto">
-                <p className="text-xl text-slate-500 line-through">
-                    ₦{quickViewProduct.originalPrice.toLocaleString()}
-                </p>
-                <p className="bg-red-500 text-white font-extrabold text-3xl px-5 py-2 rounded-lg">
-                    ₦{quickViewProduct.slashedPrice.toLocaleString()}
-                </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div className="flex items-center space-x-4">
+                    <p className="text-xl text-slate-500 line-through">
+                        ₦{quickViewProduct.originalPrice.toLocaleString()}
+                    </p>
+                    <p className="bg-red-500 text-white font-extrabold text-3xl px-5 py-2 rounded-lg">
+                        ₦{quickViewProduct.slashedPrice.toLocaleString()}
+                    </p>
+                </div>
+                 <button 
+                    onClick={() => {
+                        handleNavigateToStoreLocator();
+                        handleCloseModal();
+                    }}
+                    className="bg-[#0052FF] text-white py-3 px-5 rounded-lg font-semibold hover:bg-[#002D7A] transition-colors duration-300 text-lg"
+                  >
+                    Find a Store
+                  </button>
               </div>
               <p className="text-sm text-slate-500 mt-4">
                 Price subject to change. Grab it while it's hot!

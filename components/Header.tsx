@@ -9,16 +9,17 @@ const BellIcon = () => (
 interface HeaderProps {
     onToggleNotificationsPanel: () => void;
     unreadCount: number;
+    onGoHome: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleNotificationsPanel, unreadCount }) => {
+export const Header: React.FC<HeaderProps> = ({ onToggleNotificationsPanel, unreadCount, onGoHome }) => {
   return (
     <header className="bg-[#0052FF] sticky top-0 z-50 shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          <div className="flex items-center space-x-2">
+          <button onClick={onGoHome} className="flex items-center space-x-2" aria-label="Go to homepage">
             <span className="text-4xl font-extrabold text-yellow-300 tracking-tighter">bokku!</span>
-          </div>
+          </button>
           <div className="relative">
             <button 
               onClick={onToggleNotificationsPanel}

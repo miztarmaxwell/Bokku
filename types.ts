@@ -13,3 +13,13 @@ export interface Notification {
   message: string;
   timestamp: Date;
 }
+
+export interface Store {
+  id: number;
+  name: string;
+  address: string;
+  hours: string;
+  isOpen: boolean;
+  lat: number;
+  lng: number;
+}

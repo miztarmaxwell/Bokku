@@ -1,4 +1,4 @@
-import type { Product } from './types';
+import type { Product, Store } from './types';
 
 export const productsData: Product[] = [
   {
@@ -129,4 +129,13 @@ export const productsData: Product[] = [
     originalPrice: 8000,
     slashedPrice: 7600,
   },
+];
+
+export const storesData: Store[] = [
+  { id: 1, name: 'Bokku Mart, Ikeja', address: 'Plot 7 Acme Road, Ikeja, Lagos 101233, NG', hours: '9:00 AM - 6:00 PM', isOpen: true, lat: 6.6213, lng: 3.3367 },
+  { id: 2, name: 'Bokku Mart, Victoria Island', address: '123 Adetokunbo Ademola Street, VI, Lagos 101241, NG', hours: '9:00 AM - 8:00 PM', isOpen: true, lat: 6.4284, lng: 3.4218 },
+  { id: 3, name: 'Bokku Mart, Lekki', address: 'Block 5, Plot 10, Admiralty Way, Lekki Phase 1, Lagos 105102, NG', hours: '10:00 AM - 9:00 PM', isOpen: true, lat: 6.4473, lng: 3.4723 },
+  { id: 4, name: 'Bokku Mart, Surulere', address: '57 Isheri Oshun Road, Surulere, Lagos 102213, NG', hours: '9:00 AM - 6:00 PM', isOpen: false, lat: 6.4984, lng: 3.3444 },
+  { id: 5, name: 'Bokku Mart, Yaba', address: '320 Herbert Macaulay Way, Yaba, Lagos 101212, NG', hours: '8:30 AM - 7:00 PM', isOpen: true, lat: 6.5123, lng: 3.3837 },
+  { id: 6, name: 'Bokku Mart, Festac', address: '21 Road, Festac Town, Lagos 102312, NG', hours: '9:00 AM - 7:00 PM', isOpen: true, lat: 6.4638, lng: 3.2844 },
 ];
