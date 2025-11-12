@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { ProductCard } from './components/ProductCard';
 import { Toast } from './components/Toast';
@@ -7,6 +7,7 @@ import type { Product, Notification } from './types';
 import { Modal } from './components/Modal';
 import { NotificationsPanel } from './components/NotificationsPanel';
 import { StoreLocatorPage } from './components/StoreLocatorPage';
+import { ProductFilters } from './components/ProductFilters';
 
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(productsData);
@@ -17,6 +18,14 @@ const App: React.FC = () => {
   const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [currentPage, setCurrentPage] = useState<'home' | 'store-locator'>('home');
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    category: 'all',
+    minPrice: '',
+    maxPrice: '',
+  });
 
   const handleToggleNotifications = useCallback(() => {
     const newStatus = !notificationsEnabled;
@@ -105,7 +114,21 @@ const App: React.FC = () => {
     setCurrentPage('home');
   }, []);
 
-  const HomePage = () => (
+  const HomePage = () => {
+    const categories = useMemo(() => ['all', ...new Set(productsData.map(p => p.category))], []);
+
+    const filteredProducts = useMemo(() => {
+      return products.filter(product => {
+        const { searchTerm, category, minPrice, maxPrice } = filters;
+        const searchMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const categoryMatch = category === 'all' || product.category === category;
+        const minPriceMatch = minPrice === '' || product.slashedPrice >= parseFloat(minPrice);
+        const maxPriceMatch = maxPrice === '' || product.slashedPrice <= parseFloat(maxPrice);
+        return searchMatch && categoryMatch && minPriceMatch && maxPriceMatch;
+      });
+    }, [products, filters]);
+
+    return (
     <>
       <main className="container mx-auto px-4 py-8">
         <section className="text-center mb-12">
@@ -118,27 +141,48 @@ const App: React.FC = () => {
             Real-Time Price Slashes!
           </h1>
           <p className="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">
-            Our prices are dropping live! Click the bell icon in the header to see recent deals and manage notifications.
+            Our prices are dropping live! Use the filters below to find the best deals.
           </p>
         </section>
+        
+        <div className="mb-8 text-center">
+            <button
+                onClick={() => setIsFilterModalOpen(true)}
+                className="bg-[#0052FF] text-white py-2 px-6 rounded-lg font-semibold hover:bg-[#002D7A] transition-colors duration-300 text-lg flex items-center justify-center mx-auto"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                Filter Products
+            </button>
+        </div>
+
 
         <section>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {products.map(product => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onQuickView={handleQuickView}
-              />
-            ))}
-          </div>
+            {filteredProducts.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                    {filteredProducts.map(product => (
+                    <ProductCard
+                        key={product.id}
+                        product={product}
+                        onQuickView={handleQuickView}
+                    />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-16">
+                    <p className="text-xl text-slate-500">No products match your current filters.</p>
+                </div>
+            )}
         </section>
       </main>
       <footer className="text-center py-6 mt-12">
         <p className="text-slate-600">&copy; 2024 Bokku Price Notifier. All rights reserved.</p>
       </footer>
     </>
-  );
+  )};
+
+  const categories = useMemo(() => ['all', ...new Set(productsData.map(p => p.category))], []);
 
   return (
     <div className="min-h-screen bg-[#E0F2FF] font-sans text-slate-800">
@@ -168,6 +212,16 @@ const App: React.FC = () => {
           message={toast.message}
           onClose={handleCloseToast}
         />
+      )}
+      {isFilterModalOpen && (
+          <Modal isOpen={isFilterModalOpen} onClose={() => setIsFilterModalOpen(false)}>
+              <ProductFilters
+                filters={filters}
+                setFilters={setFilters}
+                categories={categories}
+                onClose={() => setIsFilterModalOpen(false)}
+              />
+          </Modal>
       )}
       {quickViewProduct && (
         <Modal isOpen={!!quickViewProduct} onClose={handleCloseModal}>

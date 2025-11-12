@@ -5,6 +5,7 @@ export interface Product {
   imageUrl: string;
   originalPrice: number;
   slashedPrice: number;
+  category: string;
 }
 
 export interface Notification {

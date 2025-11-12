@@ -8,6 +8,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Aquaclair+Water',
     originalPrice: 150,
     slashedPrice: 130,
+    category: 'Beverages',
   },
   {
     id: 2,
@@ -16,6 +17,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Reos+Handwash',
     originalPrice: 1200,
     slashedPrice: 990,
+    category: 'Personal Care',
   },
   {
     id: 3,
@@ -24,6 +26,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Myprei+Palm+Oil',
     originalPrice: 6500,
     slashedPrice: 6200,
+    category: 'Groceries',
   },
   {
     id: 4,
@@ -32,6 +35,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Mealmate+Elubo',
     originalPrice: 4000,
     slashedPrice: 3700,
+    category: 'Groceries',
   },
   {
     id: 5,
@@ -40,6 +44,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Mealmate+Poundo',
     originalPrice: 3800,
     slashedPrice: 3500,
+    category: 'Groceries',
   },
   {
     id: 6,
@@ -48,6 +53,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Gleamly+Lotion',
     originalPrice: 3200,
     slashedPrice: 2900,
+    category: 'Personal Care',
   },
   {
     id: 7,
@@ -56,6 +62,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Co-Vita+Chocolate',
     originalPrice: 2500,
     slashedPrice: 2390,
+    category: 'Beverages',
   },
   {
     id: 8,
@@ -64,6 +71,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Reos+Cleaner',
     originalPrice: 2200,
     slashedPrice: 2000,
+    category: 'Household',
   },
   {
     id: 9,
@@ -72,6 +80,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Zesty+Noodles',
     originalPrice: 180,
     slashedPrice: 150,
+    category: 'Groceries',
   },
   {
     id: 10,
@@ -80,6 +89,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Aroma+Seasoning',
     originalPrice: 500,
     slashedPrice: 450,
+    category: 'Groceries',
   },
   {
     id: 11,
@@ -88,6 +98,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Crunchos+Chin+Chin',
     originalPrice: 800,
     slashedPrice: 720,
+    category: 'Snacks',
   },
   {
     id: 12,
@@ -96,6 +107,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Sparkle+Detergent',
     originalPrice: 2800,
     slashedPrice: 2550,
+    category: 'Household',
   },
   {
     id: 13,
@@ -104,6 +116,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Nourish+Soap',
     originalPrice: 600,
     slashedPrice: 550,
+    category: 'Personal Care',
   },
   {
     id: 14,
@@ -112,6 +125,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Mama\'s+Pride+Paste',
     originalPrice: 900,
     slashedPrice: 810,
+    category: 'Groceries',
   },
   {
     id: 15,
@@ -120,6 +134,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Golden+Morn',
     originalPrice: 2000,
     slashedPrice: 1850,
+    category: 'Groceries',
   },
   {
     id: 16,
@@ -128,6 +143,7 @@ export const productsData: Product[] = [
     imageUrl: 'https://placehold.co/400x400/D1F7F7/002D7A?text=Sunola+Oil',
     originalPrice: 8000,
     slashedPrice: 7600,
+    category: 'Groceries',
   },
 ];
 
