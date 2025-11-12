@@ -105,6 +105,7 @@ const App: React.FC = () => {
         <NotificationsPanel
           isOpen={isNotificationsPanelOpen}
           notifications={notifications}
+          products={products}
           notificationsEnabled={notificationsEnabled}
           onToggleNotifications={handleToggleNotifications}
           onClear={handleClearNotifications}

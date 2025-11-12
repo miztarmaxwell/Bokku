@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import type { Notification } from '../types';
+import type { Notification, Product } from '../types';
 import { ToggleSwitch } from './ToggleSwitch';
 
 interface NotificationsPanelProps {
   isOpen: boolean;
   notifications: Notification[];
+  products: Product[];
   notificationsEnabled: boolean;
   onToggleNotifications: () => void;
   onClear: () => void;
@@ -40,6 +41,7 @@ function formatTimeAgo(date: Date): string {
 export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
   isOpen,
   notifications,
+  products,
   notificationsEnabled,
   onToggleNotifications,
   onClear,
@@ -49,9 +51,16 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
 
   if (!isOpen) return null;
 
-  const filteredNotifications = notifications.filter(n =>
-    n.message.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredNotifications = notifications.filter(notification => {
+    const searchTerm = filter.toLowerCase();
+    
+    const messageMatch = notification.message.toLowerCase().includes(searchTerm);
+    
+    const product = products.find(p => p.id === notification.productId);
+    const productNameMatch = product ? product.name.toLowerCase().includes(searchTerm) : false;
+    
+    return messageMatch || productNameMatch;
+  });
 
   return (
     <div className="absolute top-full right-4 mt-2 w-80 max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 z-40 overflow-hidden flex flex-col">
