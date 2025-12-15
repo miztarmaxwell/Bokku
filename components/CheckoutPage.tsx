@@ -11,6 +11,45 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'transfer' | 'ussd'>('card');
   const [loading, setLoading] = useState(false);
 
+  // Card Inputs State
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove non-digits
+    const rawValue = e.target.value.replace(/\D/g, '');
+    // Limit to 16 digits
+    const truncatedValue = rawValue.slice(0, 16);
+    // Add space every 4 digits
+    const formattedValue = truncatedValue.replace(/(\d{4})(?=\d)/g, '$1 ');
+    setCardNumber(formattedValue);
+  };
+
+  const handleCardExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove non-digits
+    let rawValue = e.target.value.replace(/\D/g, '');
+    // Limit to 4 digits (MMYY)
+    if (rawValue.length > 4) rawValue = rawValue.slice(0, 4);
+    
+    // Format as MM/YY
+    // Only add slash if we have more than 2 digits to allow backspacing easily
+    if (rawValue.length > 2) {
+        setCardExpiry(`${rawValue.slice(0, 2)}/${rawValue.slice(2)}`);
+    } else {
+        setCardExpiry(rawValue);
+    }
+  };
+
+  const handleCardCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove non-digits
+    const rawValue = e.target.value.replace(/\D/g, '');
+    // Limit to 3 digits
+    if (rawValue.length <= 3) {
+        setCardCvc(rawValue);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -133,10 +172,31 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 {paymentMethod === 'card' && (
                     <div className="space-y-3">
-                         <input type="text" placeholder="Card Number" className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] bg-white transition-shadow" />
+                         <input 
+                            type="text" 
+                            placeholder="Card Number (0000 0000 0000 0000)" 
+                            value={cardNumber}
+                            onChange={handleCardNumberChange}
+                            maxLength={19}
+                            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] bg-white transition-shadow" 
+                         />
                          <div className="grid grid-cols-2 gap-3">
-                             <input type="text" placeholder="MM/YY" className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] bg-white transition-shadow" />
-                             <input type="text" placeholder="CVC" className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] bg-white transition-shadow" />
+                             <input 
+                                type="text" 
+                                placeholder="MM/YY" 
+                                value={cardExpiry}
+                                onChange={handleCardExpiryChange}
+                                maxLength={5}
+                                className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] bg-white transition-shadow" 
+                             />
+                             <input 
+                                type="text" 
+                                placeholder="CVC" 
+                                value={cardCvc}
+                                onChange={handleCardCvcChange}
+                                maxLength={3}
+                                className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] bg-white transition-shadow" 
+                             />
                          </div>
                     </div>
                 )}
