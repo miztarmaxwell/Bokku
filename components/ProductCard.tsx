@@ -3,10 +3,10 @@ import type { Product } from '../types';
 
 interface ProductCardProps {
   product: Product;
-  onQuickView: (product: Product) => void;
+  onAddToCart: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
   const { name, imageUrl, originalPrice, slashedPrice, description } = product;
 
   return (
@@ -31,11 +31,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             </div>
           </div>
           <button
-            onClick={() => onQuickView(product)}
-            className="w-full bg-[#0052FF] text-white py-2 rounded-lg font-semibold hover:bg-[#002D7A] transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0052FF]"
-            aria-label={`Quick view ${name}`}
+            onClick={() => onAddToCart(product)}
+            className="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold hover:bg-yellow-600 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+            aria-label={`Add ${name} to cart`}
           >
-            Quick View
+            Add to Cart
           </button>
         </div>
       </div>

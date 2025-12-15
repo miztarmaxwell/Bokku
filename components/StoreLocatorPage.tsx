@@ -139,7 +139,7 @@ export const StoreLocatorPage: React.FC = () => {
         }
     
         // Clear existing store markers
-        Object.values(markersRef.current).forEach(marker => marker.remove());
+        Object.values(markersRef.current).forEach((marker: any) => marker.remove());
         markersRef.current = {};
     
         // Add new store markers

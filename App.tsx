@@ -8,17 +8,38 @@ import { Modal } from './components/Modal';
 import { NotificationsPanel } from './components/NotificationsPanel';
 import { StoreLocatorPage } from './components/StoreLocatorPage';
 import { ProductFilters } from './components/ProductFilters';
+import { CartPage } from './components/CartPage';
+import { CheckoutPage } from './components/CheckoutPage';
+import { OrderConfirmationPage } from './components/OrderConfirmationPage';
 
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(productsData);
   const [toast, setToast] = useState<{ id: number, message: string } | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState<'home' | 'store-locator'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'store-locator' | 'cart' | 'checkout' | 'confirmation'>('home');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+
+  // Checkout State
+  const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup');
+  const [orderId, setOrderId] = useState<string>('');
+
+  // Cart State with LocalStorage persistence
+  const [cart, setCart] = useState<Product[]>(() => {
+    try {
+      const savedCart = localStorage.getItem('bokku_cart');
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch (error) {
+      console.error('Failed to load cart from localStorage', error);
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('bokku_cart', JSON.stringify(cart));
+  }, [cart]);
 
   const [filters, setFilters] = useState({
     searchTerm: '',
@@ -73,12 +94,14 @@ const App: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [notificationsEnabled, isNotificationsPanelOpen]);
 
-  const handleQuickView = useCallback((product: Product) => {
-    setQuickViewProduct(product);
+  const handleAddToCart = useCallback((product: Product) => {
+    setCart(prev => [...prev, product]);
+    setToast({ id: Date.now(), message: `Added ${product.name} to cart!` });
   }, []);
 
-  const handleCloseModal = useCallback(() => {
-    setQuickViewProduct(null);
+  const handleRemoveFromCart = useCallback((index: number) => {
+      setCart(prev => prev.filter((_, i) => i !== index));
+      setToast({ id: Date.now(), message: 'Item removed from cart' });
   }, []);
 
   const handleCloseToast = useCallback(() => {
@@ -99,10 +122,13 @@ const App: React.FC = () => {
   }, []);
 
   const handleNotificationClick = useCallback((productId: number) => {
+    setCurrentPage('home');
+    setIsNotificationsPanelOpen(false);
+    // Optionally set filter to this product
     const product = products.find(p => p.id === productId);
-    if (product) {
-      setQuickViewProduct(product);
-      setIsNotificationsPanelOpen(false);
+    if(product) {
+         setFilters(prev => ({...prev, searchTerm: product.name}));
+         setToast({ id: Date.now(), message: `Filtered for ${product.name}` });
     }
   }, [products]);
 
@@ -112,6 +138,23 @@ const App: React.FC = () => {
   
   const handleGoHome = useCallback(() => {
     setCurrentPage('home');
+    setFilters({ searchTerm: '', category: 'all', minPrice: '', maxPrice: '' }); 
+  }, []);
+
+  const handleCartClick = useCallback(() => {
+      setCurrentPage('cart');
+  }, []);
+
+  const handleProceedToCheckout = useCallback(() => {
+      setCurrentPage('checkout');
+  }, []);
+
+  const handlePaymentSuccess = useCallback((type: 'pickup' | 'delivery') => {
+      const newOrderId = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit number
+      setOrderId(newOrderId);
+      setOrderType(type);
+      setCart([]); // Clear cart
+      setCurrentPage('confirmation');
   }, []);
 
   const HomePage = () => {
@@ -165,7 +208,7 @@ const App: React.FC = () => {
                     <ProductCard
                         key={product.id}
                         product={product}
-                        onQuickView={handleQuickView}
+                        onAddToCart={handleAddToCart}
                     />
                     ))}
                 </div>
@@ -184,12 +227,45 @@ const App: React.FC = () => {
 
   const categories = useMemo(() => ['all', ...new Set(productsData.map(p => p.category))], []);
 
+  const renderContent = () => {
+      switch(currentPage) {
+          case 'cart':
+              return <CartPage 
+                        cart={cart} 
+                        onRemove={handleRemoveFromCart} 
+                        onProceed={handleProceedToCheckout} 
+                        onContinueShopping={handleGoHome} 
+                     />;
+          case 'checkout':
+              const total = cart.reduce((sum, item) => sum + item.slashedPrice, 0);
+              return <CheckoutPage 
+                        total={total} 
+                        onPaymentSuccess={handlePaymentSuccess} 
+                        onBack={() => setCurrentPage('cart')} 
+                     />;
+          case 'confirmation':
+              return <OrderConfirmationPage 
+                        orderId={orderId} 
+                        orderType={orderType} 
+                        onFindStore={handleNavigateToStoreLocator} 
+                        onHome={handleGoHome} 
+                     />;
+          case 'store-locator':
+              return <StoreLocatorPage />;
+          case 'home':
+          default:
+              return <HomePage />;
+      }
+  };
+
   return (
     <div className="min-h-screen bg-[#E0F2FF] font-sans text-slate-800">
       <Header
         onToggleNotificationsPanel={handleToggleNotificationsPanel}
         unreadCount={unreadCount}
         onGoHome={handleGoHome}
+        cartCount={cart.length}
+        onCartClick={handleCartClick}
       />
        <div className="relative">
         <NotificationsPanel
@@ -204,7 +280,7 @@ const App: React.FC = () => {
         />
       </div>
 
-      {currentPage === 'home' ? <HomePage /> : <StoreLocatorPage />}
+      {renderContent()}
       
       {toast && (
         <Toast
@@ -222,51 +298,6 @@ const App: React.FC = () => {
                 onClose={() => setIsFilterModalOpen(false)}
               />
           </Modal>
-      )}
-      {quickViewProduct && (
-        <Modal isOpen={!!quickViewProduct} onClose={handleCloseModal}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-            <div className="bg-gray-100 rounded-xl p-4 flex items-center justify-center">
-              <img 
-                src={quickViewProduct.imageUrl} 
-                alt={quickViewProduct.name} 
-                className="w-full h-auto max-h-96 object-contain rounded-lg"
-              />
-            </div>
-            <div className="flex flex-col h-full">
-              <h2 id="modal-title" className="text-3xl font-bold text-yellow-600 mb-4">
-                {quickViewProduct.name}
-              </h2>
-              <div className="mb-6 flex-grow">
-                <ul className="list-disc list-inside text-slate-600 space-y-2 text-lg">
-                  {quickViewProduct.description.map((item, index) => <li key={index}>{item}</li>)}
-                </ul>
-              </div>
-              <div className="flex items-center justify-between mt-auto">
-                <div className="flex items-center space-x-4">
-                    <p className="text-xl text-slate-500 line-through">
-                        ₦{quickViewProduct.originalPrice.toLocaleString()}
-                    </p>
-                    <p className="bg-red-500 text-white font-extrabold text-3xl px-5 py-2 rounded-lg">
-                        ₦{quickViewProduct.slashedPrice.toLocaleString()}
-                    </p>
-                </div>
-                 <button 
-                    onClick={() => {
-                        handleNavigateToStoreLocator();
-                        handleCloseModal();
-                    }}
-                    className="bg-[#0052FF] text-white py-3 px-5 rounded-lg font-semibold hover:bg-[#002D7A] transition-colors duration-300 text-lg"
-                  >
-                    Find a Store
-                  </button>
-              </div>
-              <p className="text-sm text-slate-500 mt-4">
-                Price subject to change. Grab it while it's hot!
-              </p>
-            </div>
-          </div>
-        </Modal>
       )}
     </div>
   );
