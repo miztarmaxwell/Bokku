@@ -3,7 +3,7 @@ import { Header } from './components/Header';
 import { ProductCard } from './components/ProductCard';
 import { Toast } from './components/Toast';
 import { productsData } from './constants';
-import type { Product, Notification } from './types';
+import type { Product, Notification, CartItem } from './types';
 import { Modal } from './components/Modal';
 import { NotificationsPanel } from './components/NotificationsPanel';
 import { StoreLocatorPage } from './components/StoreLocatorPage';
@@ -27,10 +27,18 @@ const App: React.FC = () => {
   const [orderId, setOrderId] = useState<string>('');
 
   // Cart State with LocalStorage persistence
-  const [cart, setCart] = useState<Product[]>(() => {
+  const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const savedCart = localStorage.getItem('bokku_cart');
-      return savedCart ? JSON.parse(savedCart) : [];
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        // Ensure legacy cart items have quantity
+        return parsedCart.map((item: any) => ({
+            ...item,
+            quantity: item.quantity || 1
+        }));
+      }
+      return [];
     } catch (error) {
       console.error('Failed to load cart from localStorage', error);
       return [];
@@ -95,12 +103,30 @@ const App: React.FC = () => {
   }, [notificationsEnabled, isNotificationsPanelOpen]);
 
   const handleAddToCart = useCallback((product: Product) => {
-    setCart(prev => [...prev, product]);
-    setToast({ id: Date.now(), message: `Added ${product.name} to cart!` });
+    setCart(prev => {
+        const existingItem = prev.find(item => item.id === product.id);
+        if (existingItem) {
+            setToast({ id: Date.now(), message: `Increased quantity of ${product.name} in cart!` });
+            return prev.map(item => 
+                item.id === product.id 
+                    ? { ...item, quantity: item.quantity + 1 }
+                    : item
+            );
+        }
+        setToast({ id: Date.now(), message: `Added ${product.name} to cart!` });
+        return [...prev, { ...product, quantity: 1 }];
+    });
   }, []);
 
-  const handleRemoveFromCart = useCallback((index: number) => {
-      setCart(prev => prev.filter((_, i) => i !== index));
+  const handleUpdateQuantity = useCallback((productId: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    setCart(prev => prev.map(item => 
+        item.id === productId ? { ...item, quantity: newQuantity } : item
+    ));
+  }, []);
+
+  const handleRemoveFromCart = useCallback((id: number) => {
+      setCart(prev => prev.filter(item => item.id !== id));
       setToast({ id: Date.now(), message: 'Item removed from cart' });
   }, []);
 
@@ -233,11 +259,12 @@ const App: React.FC = () => {
               return <CartPage 
                         cart={cart} 
                         onRemove={handleRemoveFromCart} 
+                        onUpdateQuantity={handleUpdateQuantity}
                         onProceed={handleProceedToCheckout} 
                         onContinueShopping={handleGoHome} 
                      />;
           case 'checkout':
-              const total = cart.reduce((sum, item) => sum + item.slashedPrice, 0);
+              const total = cart.reduce((sum, item) => sum + (item.slashedPrice * item.quantity), 0);
               return <CheckoutPage 
                         total={total} 
                         onPaymentSuccess={handlePaymentSuccess} 
@@ -264,7 +291,7 @@ const App: React.FC = () => {
         onToggleNotificationsPanel={handleToggleNotificationsPanel}
         unreadCount={unreadCount}
         onGoHome={handleGoHome}
-        cartCount={cart.length}
+        cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)}
         onCartClick={handleCartClick}
       />
        <div className="relative">

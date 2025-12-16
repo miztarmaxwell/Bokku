@@ -1,15 +1,16 @@
 import React from 'react';
-import type { Product } from '../types';
+import type { CartItem } from '../types';
 
 interface CartPageProps {
-  cart: Product[];
-  onRemove: (index: number) => void;
+  cart: CartItem[];
+  onRemove: (id: number) => void;
+  onUpdateQuantity: (id: number, quantity: number) => void;
   onProceed: () => void;
   onContinueShopping: () => void;
 }
 
-export const CartPage: React.FC<CartPageProps> = ({ cart, onRemove, onProceed, onContinueShopping }) => {
-  const total = cart.reduce((sum, item) => sum + item.slashedPrice, 0);
+export const CartPage: React.FC<CartPageProps> = ({ cart, onRemove, onUpdateQuantity, onProceed, onContinueShopping }) => {
+  const total = cart.reduce((sum, item) => sum + (item.slashedPrice * item.quantity), 0);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -29,29 +30,53 @@ export const CartPage: React.FC<CartPageProps> = ({ cart, onRemove, onProceed, o
         <div className="flex flex-col md:flex-row gap-8">
           <div className="flex-grow">
             <ul className="space-y-4">
-              {cart.map((item, index) => (
-                <li key={`${item.id}-${index}`} className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+              {cart.map((item) => (
+                <li key={item.id} className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
+                  <div className="flex items-center space-x-4 flex-grow">
                     <img 
                       src={item.imageUrl} 
                       alt={item.name} 
                       className="w-16 h-16 object-contain rounded" 
                       loading="lazy"
                     />
-                    <div>
+                    <div className="flex-grow">
                       <h3 className="font-semibold text-gray-800">{item.name}</h3>
                       <p className="text-red-500 font-bold">₦{item.slashedPrice.toLocaleString()}</p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => onRemove(index)}
-                    className="text-red-500 hover:text-red-700 p-2"
-                    aria-label="Remove item"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center border border-gray-300 rounded-lg">
+                        <button 
+                            onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                            disabled={item.quantity <= 1}
+                            className="px-3 py-1 text-gray-600 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Decrease quantity"
+                        >
+                            -
+                        </button>
+                        <span className="px-3 py-1 font-semibold text-gray-800 border-l border-r border-gray-300 min-w-[3rem] text-center">
+                            {item.quantity}
+                        </span>
+                        <button 
+                            onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                            className="px-3 py-1 text-gray-600 hover:bg-gray-100 transition-colors"
+                            aria-label="Increase quantity"
+                        >
+                            +
+                        </button>
+                    </div>
+
+                    <button 
+                        onClick={() => onRemove(item.id)}
+                        className="text-red-500 hover:text-red-700 p-2"
+                        aria-label="Remove item"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -60,7 +85,11 @@ export const CartPage: React.FC<CartPageProps> = ({ cart, onRemove, onProceed, o
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h3 className="text-xl font-bold text-gray-800 mb-4">Summary</h3>
               <div className="flex justify-between mb-4 text-lg">
-                <span>Total</span>
+                <span>Total Items</span>
+                <span className="font-semibold text-gray-700">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
+              </div>
+              <div className="flex justify-between mb-4 text-lg">
+                <span>Total Price</span>
                 <span className="font-bold text-[#0052FF]">₦{total.toLocaleString()}</span>
               </div>
               <button 
