@@ -51,18 +51,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
 
       mapInstanceRef.current = map;
 
-      // Handle Map Click
-      map.on('click', async (e: any) => {
-        const { lat, lng } = e.latlng;
-        
-        // Add or move marker
-        if (markerRef.current) {
-          markerRef.current.setLatLng([lat, lng]);
-        } else {
-          markerRef.current = L.marker([lat, lng]).addTo(map);
-        }
-
-        // Simple reverse geocoding
+      const updateAddress = async (lat: number, lng: number) => {
         try {
             setAddress("Locating...");
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
@@ -75,6 +64,29 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
         } catch (error) {
             setAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
         }
+      };
+
+      const createMarker = (lat: number, lng: number) => {
+        const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        marker.on('dragend', (e: any) => {
+            const { lat, lng } = e.target.getLatLng();
+            updateAddress(lat, lng);
+        });
+        return marker;
+      };
+
+      // Handle Map Click
+      map.on('click', async (e: any) => {
+        const { lat, lng } = e.latlng;
+        
+        // Add or move marker
+        if (markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
+        } else {
+          markerRef.current = createMarker(lat, lng);
+        }
+
+        updateAddress(lat, lng);
       });
 
       // Try to get user's current location
@@ -434,7 +446,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
       <Modal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)}>
         <div className="flex flex-col h-[70vh] md:h-[600px] w-full">
             <h3 className="text-xl font-bold text-gray-800 mb-2">Pin Delivery Location</h3>
-            <p className="text-sm text-gray-600 mb-4">Tap on the map to set your delivery location.</p>
+            <p className="text-sm text-gray-600 mb-4">Tap on the map or drag the marker to set your delivery location.</p>
             <div className="flex-grow relative rounded-lg overflow-hidden border border-gray-300">
                  <div ref={mapContainerRef} className="h-full w-full bg-gray-100 z-0"></div>
             </div>
