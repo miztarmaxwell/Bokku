@@ -1,15 +1,40 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface OrderConfirmationPageProps {
   orderId: string;
   orderType: 'pickup' | 'delivery';
+  email: string;
   onFindStore: () => void;
   onTrackOrder: () => void;
   onHome: () => void;
 }
 
-export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({ orderId, orderType, onFindStore, onTrackOrder, onHome }) => {
+export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({ orderId, orderType, email, onFindStore, onTrackOrder, onHome }) => {
   
+  const sendEmail = (toEmail: string) => {
+    // Logic to simulate sending email
+    if (orderType === 'delivery') {
+        console.log(`Invoice and Order Number ${orderId} sent to ${toEmail}`);
+        // In a real app, this would trigger a backend endpoint to generate a PDF invoice and email it.
+    } else {
+        console.log(`Order Confirmation ${orderId} sent to ${toEmail}`);
+    }
+  };
+
+  useEffect(() => {
+    if (email) {
+      sendEmail(email);
+    }
+  }, [email, orderId, orderType]);
+
+  const handleResendEmail = () => {
+    sendEmail(email);
+    const message = orderType === 'delivery' 
+        ? `Invoice and confirmation email resent to ${email}`
+        : `Confirmation email resent to ${email}`;
+    alert(message);
+  };
+
   return (
     <div className="container mx-auto px-4 py-12 flex flex-col items-center justify-center min-h-[60vh]">
         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl text-center max-w-lg w-full">
@@ -25,9 +50,16 @@ export const OrderConfirmationPage: React.FC<OrderConfirmationPageProps> = ({ or
             <div className="bg-gray-50 p-6 rounded-xl border border-dashed border-gray-300 mb-6">
                 <p className="text-sm text-gray-500 uppercase tracking-wide font-semibold mb-2">Your Order Number</p>
                 <p className="text-4xl font-mono font-bold text-[#0052FF] tracking-wider mb-3">{orderId}</p>
-                <p className="text-xs text-gray-500">
-                    A confirmation email with this number has been sent to the email address used during checkout.
-                </p>
+                <div className="text-xs text-gray-500">
+                    {orderType === 'delivery' ? (
+                        <>An email with your <strong>invoice</strong> and order number has been sent to <span className="font-semibold text-gray-700">{email}</span>.</>
+                    ) : (
+                        <>A confirmation email with this number has been sent to <span className="font-semibold text-gray-700">{email}</span>.</>
+                    )}
+                </div>
+                <button onClick={handleResendEmail} className="text-xs text-[#0052FF] underline mt-2 hover:text-[#002D7A] transition-colors">
+                    Resend Email
+                </button>
             </div>
 
             {orderType === 'delivery' && (

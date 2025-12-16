@@ -4,7 +4,7 @@ import { storesData } from '../constants';
 
 interface CheckoutPageProps {
   total: number;
-  onPaymentSuccess: (type: 'pickup' | 'delivery') => void;
+  onPaymentSuccess: (type: 'pickup' | 'delivery', email: string) => void;
   onBack: () => void;
 }
 
@@ -144,7 +144,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
     // Simulate payment processing
     setTimeout(() => {
       setLoading(false);
-      onPaymentSuccess(deliveryType);
+      onPaymentSuccess(deliveryType, email);
     }, 2000);
   };
 

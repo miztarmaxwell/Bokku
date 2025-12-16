@@ -26,6 +26,7 @@ const App: React.FC = () => {
   // Checkout State
   const [orderType, setOrderType] = useState<'pickup' | 'delivery'>('pickup');
   const [orderId, setOrderId] = useState<string>('');
+  const [orderEmail, setOrderEmail] = useState<string>('');
 
   // Cart State with LocalStorage persistence
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -180,10 +181,11 @@ const App: React.FC = () => {
       setCurrentPage('checkout');
   }, []);
 
-  const handlePaymentSuccess = useCallback((type: 'pickup' | 'delivery') => {
+  const handlePaymentSuccess = useCallback((type: 'pickup' | 'delivery', email: string) => {
       const newOrderId = Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit number
       setOrderId(newOrderId);
       setOrderType(type);
+      setOrderEmail(email);
       setCart([]); // Clear cart
       setCurrentPage('confirmation');
   }, []);
@@ -279,6 +281,7 @@ const App: React.FC = () => {
               return <OrderConfirmationPage 
                         orderId={orderId} 
                         orderType={orderType} 
+                        email={orderEmail}
                         onFindStore={handleNavigateToStoreLocator} 
                         onTrackOrder={handleNavigateToTracking}
                         onHome={handleGoHome} 
