@@ -11,6 +11,7 @@ import { ProductFilters } from './components/ProductFilters';
 import { CartPage } from './components/CartPage';
 import { CheckoutPage } from './components/CheckoutPage';
 import { OrderConfirmationPage } from './components/OrderConfirmationPage';
+import { TrackingPage } from './components/TrackingPage';
 
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(productsData);
@@ -19,7 +20,7 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState<'home' | 'store-locator' | 'cart' | 'checkout' | 'confirmation'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'store-locator' | 'cart' | 'checkout' | 'confirmation' | 'tracking'>('home');
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   // Checkout State
@@ -161,6 +162,10 @@ const App: React.FC = () => {
   const handleNavigateToStoreLocator = useCallback(() => {
     setCurrentPage('store-locator');
   }, []);
+
+  const handleNavigateToTracking = useCallback(() => {
+    setCurrentPage('tracking');
+  }, []);
   
   const handleGoHome = useCallback(() => {
     setCurrentPage('home');
@@ -275,8 +280,11 @@ const App: React.FC = () => {
                         orderId={orderId} 
                         orderType={orderType} 
                         onFindStore={handleNavigateToStoreLocator} 
+                        onTrackOrder={handleNavigateToTracking}
                         onHome={handleGoHome} 
                      />;
+          case 'tracking':
+              return <TrackingPage orderId={orderId} onHome={handleGoHome} />;
           case 'store-locator':
               return <StoreLocatorPage />;
           case 'home':
