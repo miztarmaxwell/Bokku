@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Modal } from './Modal';
+import { storesData } from '../constants';
 
 interface CheckoutPageProps {
   total: number;
@@ -6,34 +8,104 @@ interface CheckoutPageProps {
   onBack: () => void;
 }
 
+// Declare Leaflet globally
+declare const L: any;
+
 export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSuccess, onBack }) => {
   const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('pickup');
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'transfer' | 'ussd'>('card');
   const [loading, setLoading] = useState(false);
+
+  // Delivery Details State
+  const [address, setAddress] = useState('');
+  const [apartment, setApartment] = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
+  
+  // Map State
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
 
   // Card Inputs State
   const [cardNumber, setCardNumber] = useState('');
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvc, setCardCvc] = useState('');
 
+  // Contact Inputs
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (isMapOpen && mapContainerRef.current && !mapInstanceRef.current) {
+      // Initialize map centered on Lagos (default)
+      const defaultLat = 6.5244;
+      const defaultLng = 3.3792;
+      const map = L.map(mapContainerRef.current).setView([defaultLat, defaultLng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      mapInstanceRef.current = map;
+
+      // Handle Map Click
+      map.on('click', async (e: any) => {
+        const { lat, lng } = e.latlng;
+        
+        // Add or move marker
+        if (markerRef.current) {
+          markerRef.current.setLatLng([lat, lng]);
+        } else {
+          markerRef.current = L.marker([lat, lng]).addTo(map);
+        }
+
+        // Simple reverse geocoding
+        try {
+            setAddress("Locating...");
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const data = await response.json();
+            if (data && data.display_name) {
+                setAddress(data.display_name);
+            } else {
+                setAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+            }
+        } catch (error) {
+            setAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+      });
+
+      // Try to get user's current location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+          const { latitude, longitude } = position.coords;
+          map.setView([latitude, longitude], 15);
+        });
+      }
+    }
+  }, [isMapOpen]);
+
+  // Cleanup map on close
+  useEffect(() => {
+      if (!isMapOpen && mapInstanceRef.current) {
+          mapInstanceRef.current.remove();
+          mapInstanceRef.current = null;
+          markerRef.current = null;
+      }
+  }, [isMapOpen]);
+
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove non-digits
     const rawValue = e.target.value.replace(/\D/g, '');
-    // Limit to 16 digits
     const truncatedValue = rawValue.slice(0, 16);
-    // Add space every 4 digits
     const formattedValue = truncatedValue.replace(/(\d{4})(?=\d)/g, '$1 ');
     setCardNumber(formattedValue);
   };
 
   const handleCardExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove non-digits
     let rawValue = e.target.value.replace(/\D/g, '');
-    // Limit to 4 digits (MMYY)
     if (rawValue.length > 4) rawValue = rawValue.slice(0, 4);
-    
-    // Format as MM/YY
-    // Only add slash if we have more than 2 digits to allow backspacing easily
     if (rawValue.length > 2) {
         setCardExpiry(`${rawValue.slice(0, 2)}/${rawValue.slice(2)}`);
     } else {
@@ -42,9 +114,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
   };
 
   const handleCardCvcChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove non-digits
     const rawValue = e.target.value.replace(/\D/g, '');
-    // Limit to 3 digits
     if (rawValue.length <= 3) {
         setCardCvc(rawValue);
     }
@@ -52,6 +122,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (deliveryType === 'pickup' && !selectedStoreId) {
+        alert("Please select a store for pickup.");
+        return;
+    }
+
     setLoading(true);
     // Simulate payment processing
     setTimeout(() => {
@@ -76,7 +152,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
           {/* Delivery Section */}
           <div className="mb-8">
             <h3 className="font-semibold text-gray-700 mb-3">Delivery Option</h3>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 mb-6">
               <label className={`flex-1 border p-4 rounded-lg cursor-pointer transition-colors ${deliveryType === 'pickup' ? 'border-[#0052FF] bg-blue-50' : 'border-gray-200'}`}>
                 <input 
                   type="radio" 
@@ -112,22 +188,125 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
                 </div>
               </label>
             </div>
+
+            {/* Store Pickup Selection */}
+             {deliveryType === 'pickup' && (
+                <div className="animate-fade-in-scale bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select a Pickup Store</label>
+                    <select
+                        value={selectedStoreId || ''}
+                        onChange={(e) => setSelectedStoreId(Number(e.target.value))}
+                        className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] bg-white transition-shadow"
+                        required
+                    >
+                        <option value="">-- Choose a store --</option>
+                        {storesData.map(store => (
+                            <option key={store.id} value={store.id}>{store.name}</option>
+                        ))}
+                    </select>
+
+                    {selectedStoreId && (
+                        <div className="mt-4 p-3 bg-white rounded border border-gray-100 shadow-sm">
+                            {(() => {
+                                const store = storesData.find(s => s.id === selectedStoreId);
+                                if (!store) return null;
+                                return (
+                                    <>
+                                        <p className="font-bold text-gray-800">{store.name}</p>
+                                        <p className="text-sm text-gray-600 mt-1">{store.address}</p>
+                                        <div className="flex items-center mt-2 text-sm text-[#0052FF] font-medium">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Hours: {store.hours}
+                                        </div>
+                                    </>
+                                );
+                            })()}
+                        </div>
+                    )}
+                </div>
+            )}
           </div>
 
           {/* Contact Section */}
           <div className="space-y-4 mb-8">
             <h3 className="font-semibold text-gray-700">Contact Information</h3>
             <div className="grid grid-cols-2 gap-4">
-               <input type="text" placeholder="First Name" required className="border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" />
-               <input type="text" placeholder="Last Name" required className="border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" />
+               <input 
+                 type="text" 
+                 placeholder="First Name" 
+                 required 
+                 value={firstName} 
+                 onChange={(e) => setFirstName(e.target.value)}
+                 className="border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" 
+               />
+               <input 
+                 type="text" 
+                 placeholder="Last Name" 
+                 required 
+                 value={lastName}
+                 onChange={(e) => setLastName(e.target.value)}
+                 className="border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" 
+               />
             </div>
-            <input type="email" placeholder="Email Address" required className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" />
+            <input 
+              type="email" 
+              placeholder="Email Address" 
+              required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" 
+            />
+            
             {deliveryType === 'delivery' && (
-                <input type="text" placeholder="Delivery Address" required className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" />
+                <div className="space-y-3 animate-fade-in-scale">
+                    <label className="block text-sm font-medium text-gray-700 mt-2">Delivery Address</label>
+                    <div className="flex gap-2">
+                        <input 
+                            type="text" 
+                            placeholder="Street Address" 
+                            required 
+                            value={address}
+                            onChange={(e) => setAddress(e.target.value)}
+                            className="flex-grow border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" 
+                        />
+                        <button 
+                            type="button"
+                            onClick={() => setIsMapOpen(true)}
+                            className="bg-gray-100 hover:bg-gray-200 text-[#0052FF] p-3 rounded border border-gray-300 transition-colors"
+                            title="Pin on Map"
+                        >
+                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <input 
+                        type="text" 
+                        placeholder="Apartment, suite, unit, etc. (optional)" 
+                        value={apartment}
+                        onChange={(e) => setApartment(e.target.value)}
+                        className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow" 
+                    />
+
+                    <div className="pt-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Instructions</label>
+                        <textarea
+                            placeholder="Add instructions for delivery driver (e.g. door code, leave at front desk)"
+                            value={instructions}
+                            onChange={(e) => setInstructions(e.target.value)}
+                            rows={3}
+                            className="w-full border p-3 rounded focus:outline-none focus:ring-2 focus:ring-[#0052FF] transition-shadow"
+                        />
+                    </div>
+                </div>
             )}
           </div>
-
-          {/* Payment Method Section */}
+          
+          {/* Payment Method Section - Unchanged */}
           <div className="mb-8">
             <h3 className="font-semibold text-gray-700 mb-3">Payment Method</h3>
             <div className="grid grid-cols-3 gap-3 mb-4">
@@ -251,6 +430,24 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ total, onPaymentSucc
           </div>
         </form>
       </div>
+
+      <Modal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)}>
+        <div className="flex flex-col h-[70vh] md:h-[600px] w-full">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Pin Delivery Location</h3>
+            <p className="text-sm text-gray-600 mb-4">Tap on the map to set your delivery location.</p>
+            <div className="flex-grow relative rounded-lg overflow-hidden border border-gray-300">
+                 <div ref={mapContainerRef} className="h-full w-full bg-gray-100 z-0"></div>
+            </div>
+            <div className="mt-4 flex justify-end">
+                <button 
+                    onClick={() => setIsMapOpen(false)}
+                    className="bg-[#0052FF] text-white py-2 px-6 rounded-lg font-semibold hover:bg-[#002D7A]"
+                >
+                    Confirm Location
+                </button>
+            </div>
+        </div>
+      </Modal>
     </div>
   );
 };
