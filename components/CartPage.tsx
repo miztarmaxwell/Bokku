@@ -32,7 +32,12 @@ export const CartPage: React.FC<CartPageProps> = ({ cart, onRemove, onProceed, o
               {cart.map((item, index) => (
                 <li key={`${item.id}-${index}`} className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-contain rounded" />
+                    <img 
+                      src={item.imageUrl} 
+                      alt={item.name} 
+                      className="w-16 h-16 object-contain rounded" 
+                      loading="lazy"
+                    />
                     <div>
                       <h3 className="font-semibold text-gray-800">{item.name}</h3>
                       <p className="text-red-500 font-bold">₦{item.slashedPrice.toLocaleString()}</p>

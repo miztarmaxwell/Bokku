@@ -12,7 +12,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
   return (
     <div className="bg-[#D1F7F7] rounded-xl shadow-md overflow-hidden transform hover:-translate-y-1 hover:shadow-xl transition-all duration-300 flex flex-col group">
       <div className="relative">
-        <img className="h-64 w-full object-contain bg-white" src={imageUrl} alt={name} />
+        <img 
+          className="h-64 w-full object-contain bg-white" 
+          src={imageUrl} 
+          alt={name} 
+          loading="lazy"
+        />
       </div>
       <div className="p-4 flex-grow flex flex-col">
         <h3 className="text-lg font-bold text-yellow-700 mb-2">{name}</h3>
