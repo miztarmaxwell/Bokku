@@ -12,15 +12,30 @@ const CartIcon = () => (
     </svg>
 );
 
+const MapPinIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
 interface HeaderProps {
     onToggleNotificationsPanel: () => void;
     unreadCount: number;
     onGoHome: () => void;
     cartCount: number;
     onCartClick: () => void;
+    onStoreLocatorClick: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleNotificationsPanel, unreadCount, onGoHome, cartCount, onCartClick }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  onToggleNotificationsPanel, 
+  unreadCount, 
+  onGoHome, 
+  cartCount, 
+  onCartClick,
+  onStoreLocatorClick 
+}) => {
   return (
     <header className="bg-[#0052FF] sticky top-0 z-50 shadow-md">
       <div className="container mx-auto px-4">
@@ -29,6 +44,13 @@ export const Header: React.FC<HeaderProps> = ({ onToggleNotificationsPanel, unre
             <span className="text-4xl font-extrabold text-yellow-300 tracking-tighter">bokku!</span>
           </button>
           <div className="flex items-center space-x-6">
+            <button 
+              onClick={onStoreLocatorClick} 
+              className="text-white hover:text-yellow-300 transition-colors"
+              aria-label="Store Locator"
+            >
+                <MapPinIcon />
+            </button>
             <div className="relative">
                 <button 
                   onClick={onCartClick} 

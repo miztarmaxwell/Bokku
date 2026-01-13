@@ -304,6 +304,7 @@ const App: React.FC = () => {
         onGoHome={handleGoHome}
         cartCount={cart.reduce((acc, item) => acc + item.quantity, 0)}
         onCartClick={handleCartClick}
+        onStoreLocatorClick={handleNavigateToStoreLocator}
       />
        <div className="relative">
         <NotificationsPanel
